@@ -1,3 +1,5 @@
+package software.imageviewer;
+
 import java.awt.*;
 import java.util.List;
 
