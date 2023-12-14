@@ -1,42 +1,62 @@
 package software.imageviewer.gui.swing;
 
-import software.imageviewer.gui.ImagePanel;
-import java.util.List;
+import software.imageviewer.Drawable;
+import software.imageviewer.Image;
+import software.imageviewer.gui.ImageDisplay;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Objects;
 
-public class SwingImagePanel extends JPanel implements ImagePanel {
+public class SwingImagePanel extends JPanel implements ImageDisplay {
     private Image image;
 
     @Override
-    public Image next() {
-        return null;
+    public Image image() {
+        return this.image;
     }
 
     @Override
-    public Image previous() {
-        return null;
+    public void image(Image image) {
+        this.image = image;
     }
 
     @Override
-    public ImagePanel define(List<Image> images) {
-        this.setSize(1000, 1000);
-        this.image = images.get(0);
-        return this;
+    public void display() {
+        this.repaint();
     }
 
     @Override
     public void paint(Graphics g) {
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, getWidth(), getHeight());
-        g.drawImage(image, centerXAxis(image), centerYAxis(image), null);
+        java.awt.Image scaledImage = scaled(image);
+        Drawable scaledDrawable = scaledDrawable(image);
+        g.drawImage(scaledImage,
+                    scaledDrawable.center(getWidth(),
+                    getHeight()).x(),
+                scaledDrawable.center(getHeight(),
+                    getHeight()).y(),
+                null);
     }
 
-    private int centerYAxis(Image image) {
-        return (getHeight() - image.getHeight(null)) >> 1;
+    private Drawable scaledDrawable(Image image) {
+        return image.drawable().resize(getWidth(), getHeight());
     }
 
-    private int centerXAxis(Image image) {
-        return (getWidth() - image.getWidth(null)) >> 1;
+    private  java.awt.Image scaled(Image image) {
+        try {
+            BufferedImage bimage = ImageIO.read(new File("src/main/resources/" + image.location()));
+            Drawable drawable = image.drawable()
+                    .resize(getWidth(), getHeight());
+            return bimage.getScaledInstance(drawable.width(), drawable.height(), java.awt.Image.SCALE_SMOOTH);
+        } catch (IOException e) {
+            return null;
+        }
+
     }
 }

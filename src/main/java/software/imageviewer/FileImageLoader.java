@@ -1,40 +1,58 @@
 package software.imageviewer;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FileImageLoader implements ImageLoader {
-    private final File directory;
     private final List<String> imageExtensions = List.of("jpeg", "jpg", "png");
+    private final File[] imageFiles;
 
     public FileImageLoader(File directory) {
-        this.directory = directory;
+        this.imageFiles = directory.listFiles(withImageExtension());
     }
 
     @Override
-    public List<Image> load() {
-        File[] files = directory.listFiles(withImageExtension());
-        if (files == null) {
-            return Collections.emptyList();
-        }
-        return Arrays.stream(files)
-                .map(this::toImage)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+    public Image load() {
+        return imageAt(0);
     }
 
-    private Image toImage(File imageFile) {
-        try {
-            return ImageIO.read(imageFile);
-        } catch (IOException e) {
-            return null;
-        }
+    private Image imageAt(int i) {
+        if (imageFiles == null || imageFiles.length == 0) return null;
+        return new Image() {
+            @Override
+            public String location() {
+                return imageFiles[i].getName();
+            }
+
+            @Override
+            public Drawable drawable() {
+                BufferedImage image = readImage();
+                if (image == null) return null;
+                return new Drawable(image.getWidth(), image.getHeight());
+            }
+
+            private BufferedImage readImage() {
+                try {
+                    return ImageIO.read(imageFiles[i]);
+                } catch (IOException e) {
+                    return null;
+                }
+            }
+
+            @Override
+            public Image next() {
+                return imageAt((i + 1) % imageFiles.length);
+            }
+
+            @Override
+            public Image prev() {
+                return imageAt((i - 1 + imageFiles.length) % imageFiles.length);
+            }
+        };
     }
 
     private FileFilter withImageExtension() {
