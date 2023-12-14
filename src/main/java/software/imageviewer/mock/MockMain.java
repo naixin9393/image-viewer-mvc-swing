@@ -1,5 +1,6 @@
 package software.imageviewer.mock;
 
+import com.formdev.flatlaf.intellijthemes.FlatCarbonIJTheme;
 import software.imageviewer.FileImageLoader;
 import software.imageviewer.Image;
 import software.imageviewer.gui.command.NextImageCommand;
@@ -9,7 +10,11 @@ import java.io.File;
 
 public class MockMain {
     public static void main(String[] args) {
-
+        try {
+            FlatCarbonIJTheme.setup();
+        } catch (Exception e) {
+            System.out.println("Error setting native LAF: " + e);
+        }
         SwingMainFrame mainFrame = new SwingMainFrame();
         Image image = new FileImageLoader(new File("src/main/resources")).load();
         mainFrame.imagePanel().image(image);
