@@ -6,13 +6,13 @@ public record Drawable(int width, int height) {
         }
 
         private Drawable scale(int width, int height) {
-            return new Drawable(
-                    requireVerticalScale(width, height) ? width : this.width * height / this.height,
-                    requireVerticalScale(width, height) ? this.height * width / this.width : height
-            );
+            if (requireVerticalScale(width))
+                return new Drawable(width, this.height * width / this.width);
+            else
+                return new Drawable(this.width * height / this.height, height);
         }
 
-        private boolean requireVerticalScale(int width, int height) {
+        private boolean requireVerticalScale(int width) {
             return this.width > width;
         }
 
@@ -21,14 +21,9 @@ public record Drawable(int width, int height) {
         }
 
         public Point center(int width, int height) {
-            return new Point((width-this.width)/2, (height-this.height)/2);
+            return new Point((width-this.width) >> 1, (height-this.height) >> 1);
         }
 
-        private double ratio() {
-            return (double) width / height;
-        }
-
-        public record Point(int x, int y) {
-
-        }
+    public record Point(int x, int y) {
+    }
 }

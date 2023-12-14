@@ -2,18 +2,18 @@ package software.imageviewer.gui.command;
 
 import software.imageviewer.gui.ImageDisplay;
 
-public class NextImageCommand implements Command {
+public class PreviousImageCommand implements Command {
     private final ImageDisplay imageDisplay;
 
-    public NextImageCommand(ImageDisplay imageDisplay) {
+    public PreviousImageCommand(ImageDisplay imageDisplay) {
         this.imageDisplay = imageDisplay;
     }
 
     @Override
     public void execute() {
-        if (imageDisplay.image().next() == null)
+        if (imageDisplay.image().previous() == null)
             return;
-        imageDisplay.image(imageDisplay.image().next());
+        imageDisplay.image(imageDisplay.image().previous());
         imageDisplay.display();
     }
 }

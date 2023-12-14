@@ -2,29 +2,34 @@ package software.imageviewer.gui.swing;
 
 import software.imageviewer.gui.ImageDisplay;
 import software.imageviewer.gui.command.Command;
-import software.imageviewer.gui.command.NextImageCommand;
-
 import javax.swing.*;
 import java.awt.*;
-import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
 public class SwingMainFrame extends JFrame {
     private SwingImagePanel imagePanel;
-    private Map<String, Command> commands = new HashMap<>();
+    private final Map<String, Command> commands = new HashMap<>();
 
     public SwingMainFrame() throws HeadlessException {
         this.setTitle("Image Viewer");
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-        this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
+//        this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
+        this.setSize(800, 600);
         this.setLocationRelativeTo(null);
         this.add(createImagePanel());
         this.add(nextButton(), BorderLayout.EAST);
+        this.add(previousButton(), BorderLayout.WEST);
+    }
+
+    private Component previousButton() {
+        JButton button = new JButton("<");
+        button.addActionListener(e -> commands.get("previous image").execute());
+        return button;
     }
 
     private Component nextButton() {
-        JButton button = new JButton("-->");
+        JButton button = new JButton(">");
         button.addActionListener(e -> commands.get("next image").execute());
         return button;
     }

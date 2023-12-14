@@ -1,8 +1,9 @@
 package software.imageviewer;
 
 public interface Image {
-    String location();
+    String name();
     Drawable drawable();
+    java.awt.Image bitmap();
     Image next();
-    Image prev();
+    Image previous();
 }

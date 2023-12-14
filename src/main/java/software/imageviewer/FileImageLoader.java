@@ -24,7 +24,7 @@ public class FileImageLoader implements ImageLoader {
         if (imageFiles == null || imageFiles.length == 0) return null;
         return new Image() {
             @Override
-            public String location() {
+            public String name() {
                 return imageFiles[i].getName();
             }
 
@@ -33,6 +33,11 @@ public class FileImageLoader implements ImageLoader {
                 BufferedImage image = readImage();
                 if (image == null) return null;
                 return new Drawable(image.getWidth(), image.getHeight());
+            }
+
+            @Override
+            public java.awt.Image bitmap() {
+                return readImage();
             }
 
             private BufferedImage readImage() {
@@ -45,12 +50,12 @@ public class FileImageLoader implements ImageLoader {
 
             @Override
             public Image next() {
-                return imageAt((i + 1) % imageFiles.length);
+                return i + 1 == imageFiles.length ? null : imageAt(i + 1);
             }
 
             @Override
-            public Image prev() {
-                return imageAt((i - 1 + imageFiles.length) % imageFiles.length);
+            public Image previous() {
+                return i == 0 ? null : imageAt(i - 1);
             }
         };
     }
