@@ -8,16 +8,34 @@ import java.io.IOException;
 import java.util.List;
 
 public class FileImageLoader implements ImageLoader {
+    private final File originalFile;
     private final List<String> imageExtensions = List.of("jpeg", "jpg", "png");
     private final File[] imageFiles;
 
-    public FileImageLoader(File directory) {
-        this.imageFiles = directory.listFiles(withImageExtension());
+    public FileImageLoader(File file) {
+        this.originalFile = file;
+        if (file.isDirectory())
+            this.imageFiles = file.listFiles(withImageExtension());
+        else
+            this.imageFiles = new File(file.getParent()).listFiles(withImageExtension());
     }
 
     @Override
     public LinkedImage load() {
-        return new MyLinkedImage(0);
+        if (originalFile.isDirectory())
+            return new MyLinkedImage(0);
+        else
+            return searchFile(originalFile);
+    }
+
+    private LinkedImage searchFile(File originalFile) {
+        LinkedImage image = new MyLinkedImage(0);
+        while (image != null) {
+            if (image.url().equals(originalFile.getPath()))
+                return image;
+            image = image.next();
+        }
+        return null;
     }
 
     class MyLinkedImage implements LinkedImage {
