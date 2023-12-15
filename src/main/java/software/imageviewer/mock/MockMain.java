@@ -2,7 +2,7 @@ package software.imageviewer.mock;
 
 import com.formdev.flatlaf.intellijthemes.FlatCarbonIJTheme;
 import software.imageviewer.FileImageLoader;
-import software.imageviewer.Image;
+import software.imageviewer.LinkedImage;
 import software.imageviewer.gui.command.NextImageCommand;
 import software.imageviewer.gui.command.PreviousImageCommand;
 import software.imageviewer.gui.swing.SwingMainFrame;
@@ -16,8 +16,8 @@ public class MockMain {
             System.out.println("Error setting native LAF: " + e);
         }
         SwingMainFrame mainFrame = new SwingMainFrame();
-        Image image = new FileImageLoader(new File("src/main/resources")).load();
-        mainFrame.imagePanel().image(image);
+        LinkedImage linkedImage = new FileImageLoader(new File("src/main/resources")).load();
+        mainFrame.imagePanel().image(linkedImage);
         mainFrame.add("next image", new NextImageCommand(mainFrame.imagePanel()));
         mainFrame.add("previous image", new PreviousImageCommand(mainFrame.imagePanel()));
         mainFrame.setVisible(true);

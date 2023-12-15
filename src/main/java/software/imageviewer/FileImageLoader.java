@@ -16,48 +16,61 @@ public class FileImageLoader implements ImageLoader {
     }
 
     @Override
-    public Image load() {
-        return imageAt(0);
+    public LinkedImage load() {
+        return new MyLinkedImage(0);
     }
 
-    private Image imageAt(int i) {
-        if (imageFiles == null || imageFiles.length == 0) return null;
-        return new Image() {
-            @Override
-            public String name() {
-                return imageFiles[i].getName();
-            }
+    class MyLinkedImage implements LinkedImage {
+        private final String url;
+        private final MyLinkedImage previous;
+        private final MyLinkedImage next;
+        private final Drawable drawable;
 
-            @Override
-            public Drawable drawable() {
-                BufferedImage image = readImage();
-                if (image == null) return null;
-                return new Drawable(image.getWidth(), image.getHeight());
-            }
+        public MyLinkedImage(int i) {
+            this.previous = null;
+            this.next = new MyLinkedImage(this, i + 1);
+            File imageFile = imageFiles[i];
+            BufferedImage bimage = loadImage(i);
+            this.drawable = new Drawable(bimage.getWidth(), bimage.getHeight());
+            this.url = imageFile.getPath();
+        }
 
-            @Override
-            public java.awt.Image bitmap() {
-                return readImage();
-            }
+        private MyLinkedImage(MyLinkedImage previous, int i) {
+            this.previous = previous;
+            this.next = i + 1 == imageFiles.length ? null : new MyLinkedImage(this, i + 1);
+            File imageFile = imageFiles[i];
+            BufferedImage bimage = loadImage(i);
+            this.drawable = new Drawable(bimage.getWidth(), bimage.getHeight());
+            this.url = imageFile.getPath();
+        }
 
-            private BufferedImage readImage() {
-                try {
-                    return ImageIO.read(imageFiles[i]);
-                } catch (IOException e) {
-                    return null;
-                }
+        private BufferedImage loadImage(int i) {
+            try {
+                return ImageIO.read(new File(imageFiles[i].getPath()));
+            } catch (IOException e) {
+                return null;
             }
+        }
 
-            @Override
-            public Image next() {
-                return i + 1 == imageFiles.length ? null : imageAt(i + 1);
-            }
+        @Override
+        public String url() {
+            return this.url;
+        }
 
-            @Override
-            public Image previous() {
-                return i == 0 ? null : imageAt(i - 1);
-            }
-        };
+        @Override
+        public Drawable drawable() {
+            return this.drawable;
+        }
+
+        @Override
+        public LinkedImage next() {
+            return this.next;
+        }
+
+        @Override
+        public LinkedImage previous() {
+            return this.previous;
+        }
     }
 
     private FileFilter withImageExtension() {

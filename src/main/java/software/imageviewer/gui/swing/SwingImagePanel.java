@@ -1,57 +1,30 @@
 package software.imageviewer.gui.swing;
 
 import software.imageviewer.Drawable;
-import software.imageviewer.Image;
+import software.imageviewer.LinkedImage;
 import software.imageviewer.gui.ImageDisplay;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SwingImagePanel extends JPanel implements ImageDisplay {
-    private Image image;
+    private LinkedImage linkedImage;
+    private final Map<String, BufferedImage> bitmaps = new HashMap<>();
 
     @Override
-    public Image image() {
-        return this.image;
+    public LinkedImage image() {
+        return this.linkedImage;
     }
 
     @Override
-    public void image(Image image) {
-        if (this.image != null) {
-            this.image = image;
-            return;
-        }
-        this.image = scaled(image);
-    }
-
-    private Image scaled(Image image) {
-        if (image == null) return null;
-        Drawable drawable = image.drawable();
-        return new Image() {
-            @Override
-            public String name() {
-                return image.name();
-            }
-
-            @Override
-            public Drawable drawable() {
-                return drawable.resize(getWidth(), getHeight());
-            }
-
-            @Override
-            public java.awt.Image bitmap() {
-                return image.bitmap().getScaledInstance(drawable.resize(getWidth(), getHeight()).width(), drawable.resize(getWidth(), getHeight()).height(), java.awt.Image.SCALE_FAST);
-            }
-
-            @Override
-            public Image next() {
-                return scaled(image.next());
-            }
-
-            @Override
-            public Image previous() {
-                return scaled(image.previous());
-            }
-        };
+    public void image(LinkedImage linkedImage) {
+        this.linkedImage = linkedImage;
     }
 
     @Override
@@ -63,10 +36,19 @@ public class SwingImagePanel extends JPanel implements ImageDisplay {
     public void paint(Graphics g) {
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, getWidth(), getHeight());
-        g.drawImage(image.bitmap(),
-                    image.drawable().center(getWidth(),
+        BufferedImage bitmap = bitmaps.computeIfAbsent(linkedImage.url(), n -> {
+            try {
+                return ImageIO.read(new File(linkedImage.url()));
+            } catch (IOException e) {
+                return null;
+            }
+        });
+        Drawable scaledDrawable = linkedImage.drawable().resize(getWidth(), getHeight());
+        Image scaledBitmap = bitmap.getScaledInstance(scaledDrawable.width(), scaledDrawable.height(), BufferedImage.TYPE_INT_RGB);
+        g.drawImage(scaledBitmap,
+                    scaledDrawable.center(getWidth(),
                     getHeight()).x(),
-                image.drawable().center(getHeight(),
+                scaledDrawable.center(getHeight(),
                     getHeight()).y(),
                 null);
     }
