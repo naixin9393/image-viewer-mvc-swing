@@ -6,14 +6,10 @@ public record Drawable(int width, int height) {
         }
 
         private Drawable scale(int width, int height) {
-            if (requireVerticalScale(width))
+            if (this.width / width > this.height / height)
                 return new Drawable(width, this.height * width / this.width);
             else
                 return new Drawable(this.width * height / this.height, height);
-        }
-
-        private boolean requireVerticalScale(int width) {
-            return this.width > width;
         }
 
         private boolean requireScale(int width, int height) {
