@@ -5,90 +5,77 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 public class FileImageLoader implements ImageLoader {
     private final File originalFile;
     private final List<String> imageExtensions = List.of("jpeg", "jpg", "png");
-    private final File[] imageFiles;
+    private final String[] images;
 
     public FileImageLoader(File file) {
         this.originalFile = file;
         if (file.isDirectory())
-            this.imageFiles = file.listFiles(withImageExtension());
+            this.images = toString(file.listFiles(withImageExtension()));
         else
-            this.imageFiles = new File(file.getParent()).listFiles(withImageExtension());
+            this.images = toString(new File(file.getParent()).listFiles(withImageExtension()));
+    }
+
+    private String[] toString(File[] files) {
+        return Arrays.stream(files)
+                .map(File::getAbsolutePath)
+                .toList()
+                .toArray(new String[0]);
     }
 
     @Override
     public LinkedImage load() {
         if (originalFile.isDirectory())
-            return new MyLinkedImage(0);
+            return imageAt(0);
         else
             return searchFile(originalFile);
     }
 
     private LinkedImage searchFile(File originalFile) {
-        LinkedImage image = new MyLinkedImage(0);
-        while (image != null) {
-            if (image.url().equals(originalFile.getPath()))
-                return image;
-            image = image.next();
+        for (int i = 0; i < images.length; i++) {
+            if (images[i].endsWith(originalFile.getName()))
+                return imageAt(i);
         }
-        return null;
+        throw new RuntimeException("File not found");
     }
 
-    class MyLinkedImage implements LinkedImage {
-        private final String url;
-        private final MyLinkedImage previous;
-        private final MyLinkedImage next;
-        private final Drawable drawable;
+    private LinkedImage imageAt(int i) {
+        return new LinkedImage(){
 
-        public MyLinkedImage(int i) {
-            this.previous = null;
-            this.next = new MyLinkedImage(this, i + 1);
-            File imageFile = imageFiles[i];
-            BufferedImage bimage = loadImage(i);
-            this.drawable = new Drawable(bimage.getWidth(), bimage.getHeight());
-            this.url = imageFile.getPath();
-        }
-
-        private MyLinkedImage(MyLinkedImage previous, int i) {
-            this.previous = previous;
-            this.next = i + 1 == imageFiles.length ? null : new MyLinkedImage(this, i + 1);
-            File imageFile = imageFiles[i];
-            BufferedImage bimage = loadImage(i);
-            this.drawable = new Drawable(bimage.getWidth(), bimage.getHeight());
-            this.url = imageFile.getPath();
-        }
-
-        private BufferedImage loadImage(int i) {
-            try {
-                return ImageIO.read(new File(imageFiles[i].getPath()));
-            } catch (IOException e) {
-                return null;
+            @Override
+            public String url() {
+                return images[i];
             }
-        }
 
-        @Override
-        public String url() {
-            return this.url;
-        }
+            @Override
+            public Drawable drawable() {
+                BufferedImage image = readImage();
+                return new Drawable(image.getWidth(), image.getHeight());
+            }
 
-        @Override
-        public Drawable drawable() {
-            return this.drawable;
-        }
+            private BufferedImage readImage() {
+                try {
+                    return ImageIO.read(new File(images[i]));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
-        @Override
-        public LinkedImage next() {
-            return this.next;
-        }
+            @Override
+            public LinkedImage next() {
+                return i + 1 == images.length ? null : imageAt(i + 1);
+            }
 
-        @Override
-        public LinkedImage previous() {
-            return this.previous;
-        }
+            @Override
+            public LinkedImage previous() {
+                return i == 0 ? null : imageAt(i - 1);
+            }
+        };
     }
 
     private FileFilter withImageExtension() {

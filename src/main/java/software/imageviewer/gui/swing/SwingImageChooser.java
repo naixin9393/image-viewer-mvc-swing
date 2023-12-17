@@ -4,7 +4,8 @@ import software.imageviewer.FileImageLoader;
 import software.imageviewer.LinkedImage;
 import software.imageviewer.gui.ImageChooser;
 
-import javax.swing.*;
+import javax.swing.JFileChooser;
+
 import java.io.File;
 
 public class SwingImageChooser implements ImageChooser {
